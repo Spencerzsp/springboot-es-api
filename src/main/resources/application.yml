@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    username: root
+    password: bigdata
+    url: jdbc:mysql://wbbigdata01:3306/sinan_opinion1?useUnicode=true&characterEncoding=utf-8
+    driver-class-name: com.mysql.jdbc.Driver
