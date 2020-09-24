@@ -27,13 +27,13 @@ import org.elasticsearch.client.indices.CreateIndexResponse;
 import org.elasticsearch.client.indices.GetIndexRequest;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.index.query.MatchAllQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.search.MultiMatchQuery;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
+import org.elasticsearch.search.sort.SortOrder;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -200,7 +200,7 @@ class SpringbootEsApiApplicationTests {
 		userList.add(new User("虚空行者", 4));
 		userList.add(new User("发条魔灵", 5));
 
-		//批处理请求
+		//批处理请求,使用一般的for循环可以指定文档的id
 		for (int i = 0; i < userList.size(); i++) {
 			bulkRequest.add(
 					new IndexRequest("kuang_index")
@@ -293,6 +293,50 @@ class SpringbootEsApiApplicationTests {
 
 		// 客户端提交请求
 		BulkResponse bulkResponse = client.bulk(bulkRequest, RequestOptions.DEFAULT);
+
+	}
+
+	/**
+	 * 指定关键字在一个索引库下的多个字段进行匹配
+	 * 如 keyword: 班德尔城,在"addr", "name"字段中进行搜索匹配
+	 * @throws IOException
+	 */
+	@Test
+	public void testMultiQuery() throws IOException {
+		SearchRequest searchRequest = new SearchRequest("lol_info");
+		MultiMatchQueryBuilder builder1 = QueryBuilders.multiMatchQuery(25, "age");
+		MultiMatchQueryBuilder builder2 = QueryBuilders.multiMatchQuery("约德尔", "addr");
+
+//		不能使用精确termQuery进行多条件匹配查询
+//		TermQueryBuilder builder1 = QueryBuilders.termQuery("age", 25);
+//		TermQueryBuilder builder2 = QueryBuilders.termQuery("addr", "约德尔");
+
+		SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+		searchSourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
+//		searchSourceBuilder.from(1);
+//		searchSourceBuilder.size(5);
+		// 查询结果按照age进行降序排序
+//		searchSourceBuilder.sort("age", SortOrder.DESC);
+//		searchSourceBuilder.query(builder);
+
+		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+		// 包含builder1和builder2,相当于sql中的and
+		boolQueryBuilder.mustNot(builder1);
+//		boolQueryBuilder.must(builder2);
+		// 等价于sql中的where
+//		boolQueryBuilder.filter(builder2);
+		// 等价于sql中的not
+		boolQueryBuilder.mustNot(builder2);
+
+		searchSourceBuilder.trackScores(true);
+		searchSourceBuilder.query(boolQueryBuilder);
+		searchRequest.source(searchSourceBuilder);
+
+		SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+		SearchHit[] hits = searchResponse.getHits().getHits();
+		for (SearchHit hit : hits) {
+			System.out.println(hit.getSourceAsMap());
+		}
 
 	}
 

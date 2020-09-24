@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -74,7 +75,7 @@ public class LolRoleService {
      * @return
      * @throws IOException
      */
-    public List<String> searchRole() throws IOException {
+    public List<Map> searchRole() throws IOException {
         // 创建搜索请求对象
         SearchRequest searchRequest = new SearchRequest("lol_info");
         // 创建构建器对象
@@ -93,9 +94,9 @@ public class LolRoleService {
 
         // 获取查询结果，封装输出到List返回
         SearchHit[] hits = searchResponse.getHits().getHits();
-        ArrayList<String> list = new ArrayList<>();
+        ArrayList<Map> list = new ArrayList<>();
         for (SearchHit hit : hits) {
-            list.add(hit.getSourceAsString());
+            list.add(hit.getSourceAsMap());
         }
 
         return list;
