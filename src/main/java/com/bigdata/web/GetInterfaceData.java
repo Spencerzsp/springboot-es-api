@@ -45,9 +45,10 @@ public class GetInterfaceData {
         String result = EntityUtils.toString(httpEntity);
 
 //        JSONObject jsonObject = JSONObject.parseObject(result);
-        JSONArray jsonArray = JSONObject.parseArray(result);
-//        System.out.println(jsonArray.getString(1));
 
+        // 转换字符串为json数组
+        JSONArray jsonArray = JSONObject.parseArray(result);
+        // 遍历json数组
         for (int i = 0; i < jsonArray.size(); i++) {
             String jsonArrayString = jsonArray.getString(i);
             JSONObject jsonObject = JSONObject.parseObject(jsonArrayString);
