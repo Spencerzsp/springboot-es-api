@@ -21,6 +21,9 @@ public class OracleDemo {
         select();
     }
 
+    /**
+     * 查询oracle数据
+     */
     private static void select() {
         connection = OracleUtil.getConnection();
         String sql = "select * from dept";
